@@ -1,3 +1,4 @@
+import random
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -250,7 +251,7 @@ class CGMatch(AlgorithmBase):
             total_loss = sup_loss + self.lambda_u * easy_unsup_loss + current_weight * ambiguous_unsup_loss
 
             # calculate calibration metrics
-            ece = calculate_ece(logits_x_ulb_w.detach().cpu(), y_ulb.detach().cpu())
+            y_ulb_cpu = y_ulb.detach().cpu(); y_ulb_cpu = y_ulb_cpu.argmax(dim=1) if y_ulb_cpu.dim() > 1 else y_ulb_cpu; ece = calculate_ece(logits_x_ulb_w.detach().cpu(), y_ulb_cpu)
 
         out_dict = self.process_out_dict(loss=total_loss, feat=feat_dict)
         log_dict = self.process_log_dict(sup_loss=sup_loss.item(), 
@@ -346,7 +347,7 @@ class CGMatch(AlgorithmBase):
         # fill the initial memory bank
         for i, idx in enumerate(ulb_idxs):
             if idx.item() not in self.guid_gold:
-                self.guid_gold[idx.item()] = {"gold": y_true[i].item()}
+                self.guid_gold[idx.item()] = {"gold": int(y_true.flatten()[i])}
         self.update_bank(ulb_idxs, pseudo_labels, y_max_probs)
 
         self.ema.restore()

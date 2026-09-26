@@ -11,7 +11,7 @@ import torch
 import torch.nn.functional as F
 from semilearn.core.criterions import CELoss, ConsistencyLoss, GCELoss, calculate_ece
 from semilearn.core.hooks import (
-    AimHook,
+        # # AimHook,
     CheckpointHook,
     DistSamplerSeedHook,
     EMAHook,
@@ -276,7 +276,9 @@ class AlgorithmBase:
         if self.args.use_wandb:
             self.register_hook(WANDBHook(), None, "LOWEST")
         if self.args.use_aim:
-            self.register_hook(AimHook(), None, "LOWEST")
+            pass
+            pass
+        # # self.register_hook(AimHook(), None, "LOWEST")
 
     def process_batch(self, input_args=None, **kwargs):
         """

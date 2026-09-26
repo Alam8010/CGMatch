@@ -13,7 +13,7 @@ class EvaluationHook(Hook):
     
     def after_train_step(self, algorithm):
         # Added by Bo Cheng
-        if algorithm.it < algorithm.warm_up_iter:
+        if hasattr(algorithm, "warm_up_iter") and algorithm.it < algorithm.warm_up_iter:
             algorithm.print_fn("warm_up validating...")
             eval_dict = algorithm.warm_up_evaluate('warm_up_eval')
             algorithm.log_dict.update(eval_dict)

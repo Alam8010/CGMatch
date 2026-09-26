@@ -13,7 +13,7 @@ class LoggingHook(Hook):
     def after_train_step(self, algorithm):
         """must be called after evaluation"""
         # Added by Bo Cheng
-        if algorithm.it < algorithm.warm_up_iter:
+        if hasattr(algorithm, "warm_up_iter") and algorithm.it < algorithm.warm_up_iter:
             if not algorithm.distributed or (
                 algorithm.distributed and algorithm.rank % algorithm.ngpus_per_node == 0
             ):
