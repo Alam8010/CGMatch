@@ -69,6 +69,49 @@ The original CGMatch code was written for Python 3.8–3.10. Running it on Kaggl
 
 ---
 
+## Repository Structure
+
+```
+CGMatch/
+├── config/                                   # YAML training configs
+│   ├── classic_cv/
+│   │   ├── cgmatch/                          # CGMatch configs (CIFAR-10/100, STL-10, SVHN)
+│   │   │   ├── cgmatch_cifar10_40_0.yaml     # Config used in our runs (40 labels)
+│   │   │   └── ...
+│   │   └── fixmatch/
+│   │       └── fixmatch_cifar10_40_0.yaml    # FixMatch baseline config
+│   └── classic_cv_imb/
+│       └── cgmatch/                          # Class-imbalanced CGMatch configs
+├── semilearn/                                # Patched files, copied over the USB framework
+│   ├── algorithms/
+│   │   └── cgmatch/
+│   │       ├── __init__.py
+│   │       ├── cgmatch.py                    # CGMatch algorithm (Count-Gap, memory bank, losses)
+│   │       └── utils.py                      # CGMatchThresholdingHook (easy/ambiguous/hard masks)
+│   ├── core/
+│   │   ├── algorithmbase.py
+│   │   ├── criterions/                       # CE, consistency/GCE losses, calibration (ECE)
+│   │   ├── hooks/                            # evaluation.py, logging.py, __init__.py
+│   │   └── utils/                            # misc.py, registry.py
+│   ├── datasets/
+│   │   └── cv_datasets/
+│   │       └── datasetbase.py
+│   └── nets/
+│       └── __init__.py
+├── .gitignore
+├── FixMatch.ipynb                            # Kaggle notebook: FixMatch baseline run
+├── cgmatch_and_rs_notebook16bbbf55aa (1).ipynb  # Kaggle notebook: CGMatch + random-sorting runs
+├── app.py                                    # Streamlit deployment app
+├── train.py                                  # Training entry point
+├── bird.jpg / car.jpg / cat.jpg              # Sample images for testing the app
+├── LICENSE
+└── README.md
+```
+
+> This repo holds only the files we added or patched. The rest of the code comes from the [Microsoft USB](https://github.com/microsoft/Semi-supervised-learning) framework, which the setup cell below clones and merges with this repo.
+
+---
+
 ## Setup and Training
 
 ### Requirements
@@ -138,12 +181,25 @@ The random sorting variant is already patched in this fork — `cgmatch.py` repl
 
 ## Deployment
 
-A Streamlit app loads the trained CGMatch model and allows users to upload any image to receive:
+A Streamlit app (`app.py`) loads the trained CGMatch model and allows users to upload any image to receive:
 - Predicted class label (one of the 10 CIFAR-10 classes)
 - Top-3 class probabilities
 - Whether the model's prediction falls into the easy, ambiguous, or hard category
 
-The trained model checkpoint (`model_best.pth`) is available separately — file size (592MB) exceeds GitHub's limit.
+### Why the app is not deployed online
+
+The trained checkpoint (`model_best.pth`) is **592MB**. That is over GitHub's file size limit, so it could not be pushed to this repo. Hosting services like Streamlit Community Cloud deploy straight from the GitHub repo, so they could not get the checkpoint either. Because of this, **the app could not be deployed online**, and it runs locally.
+
+The checkpoint is this large because USB saves the full training state, not just the weights. That includes the Count-Gap memory bank (a 1000-step history of pseudo-labels and confidences for every unlabeled image), the optimizer state, and the EMA model.
+
+### Running the app locally
+
+1. Put `model_best.pth` in the same folder as `app.py`
+2. Install dependencies: `pip install streamlit torch torchvision pillow`
+3. Start the app: `streamlit run app.py`
+4. Open `http://localhost:8501` and upload an image (e.g., `cat.jpg`, `car.jpg`, `bird.jpg`)
+
+**Demo video:** [Watch the app running](https://drive.google.com/file/d/1O_Qs4moo5-gDNa-STQ2tc1L_wTJlkliX/view?usp=sharing)
 
 ---
 
